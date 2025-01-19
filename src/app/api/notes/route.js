@@ -12,24 +12,15 @@ export async function GET() {
       .sort({ createdAt: -1 })
       .toArray();
 
-    return new NextResponse(
-      JSON.stringify(notes),
-      { 
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    return NextResponse.json(notes);
   } catch (error) {
     console.error('获取笔记失败:', error);
-    return new NextResponse(
-      JSON.stringify({ 
+    return NextResponse.json(
+      { 
         error: '获取笔记失败', 
         details: error.message 
-      }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+      },
+      { status: 500 }
     );
   }
 }
@@ -44,12 +35,9 @@ export async function POST(request) {
     const { content } = body;
     
     if (!content) {
-      return new NextResponse(
-        JSON.stringify({ error: '内容不能为空' }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
+      return NextResponse.json(
+        { error: '内容不能为空' },
+        { status: 400 }
       );
     }
 
@@ -58,28 +46,22 @@ export async function POST(request) {
       createdAt: new Date()
     });
 
-    return new NextResponse(
-      JSON.stringify({ 
+    return NextResponse.json(
+      { 
         id: result.insertedId.toString(), 
         content,
         createdAt: new Date()
-      }),
-      { 
-        status: 201,
-        headers: { 'Content-Type': 'application/json' }
-      }
+      },
+      { status: 201 }
     );
   } catch (error) {
     console.error('保存笔记失败:', error);
-    return new NextResponse(
-      JSON.stringify({ 
+    return NextResponse.json(
+      { 
         error: '保存笔记失败', 
         details: error.message 
-      }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+      },
+      { status: 500 }
     );
   }
 }
