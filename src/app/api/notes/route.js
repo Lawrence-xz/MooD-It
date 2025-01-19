@@ -2,19 +2,10 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+  let client;
   try {
-    const { db } = await connectToDatabase();
-    
-    if (!db) {
-      console.error('数据库连接失败');
-      return new NextResponse(
-        JSON.stringify({ error: '数据库连接失败' }), 
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
+    const { client: dbClient, db } = await connectToDatabase();
+    client = dbClient;
 
     const notes = await db.collection('notes')
       .find({})
@@ -28,11 +19,13 @@ export async function GET() {
         headers: { 'Content-Type': 'application/json' }
       }
     );
-    
   } catch (error) {
     console.error('获取笔记失败:', error);
     return new NextResponse(
-      JSON.stringify({ error: '获取笔记失败' }),
+      JSON.stringify({ 
+        error: '获取笔记失败', 
+        details: error.message 
+      }),
       { 
         status: 500,
         headers: { 'Content-Type': 'application/json' }
@@ -42,21 +35,13 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  let client;
   try {
-    const { db } = await connectToDatabase();
-    
-    if (!db) {
-      console.error('数据库连接失败');
-      return new NextResponse(
-        JSON.stringify({ error: '数据库连接失败' }),
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
+    const { client: dbClient, db } = await connectToDatabase();
+    client = dbClient;
 
-    const { content } = await request.json();
+    const body = await request.json();
+    const { content } = body;
     
     if (!content) {
       return new NextResponse(
@@ -74,17 +59,23 @@ export async function POST(request) {
     });
 
     return new NextResponse(
-      JSON.stringify({ id: result.insertedId, content }),
+      JSON.stringify({ 
+        id: result.insertedId.toString(), 
+        content,
+        createdAt: new Date()
+      }),
       { 
         status: 201,
         headers: { 'Content-Type': 'application/json' }
       }
     );
-    
   } catch (error) {
     console.error('保存笔记失败:', error);
     return new NextResponse(
-      JSON.stringify({ error: '保存笔记失败' }),
+      JSON.stringify({ 
+        error: '保存笔记失败', 
+        details: error.message 
+      }),
       { 
         status: 500,
         headers: { 'Content-Type': 'application/json' }
