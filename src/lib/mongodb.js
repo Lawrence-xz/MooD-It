@@ -14,24 +14,15 @@ export async function connectToDatabase() {
 
   try {
     const client = await MongoClient.connect(process.env.MONGODB_URI);
-    const db = client.db('your-database-name'); // 确保这里使用正确的数据库名
+    const db = client.db('musicMemo'); // 修改为您的数据库名称
 
     cachedClient = client;
     cachedDb = db;
 
+    console.log('MongoDB 连接成功');
     return { client, db };
   } catch (error) {
     console.error('MongoDB 连接错误:', error);
     return { client: null, db: null };
   }
 }
-
-// 添加错误处理和日志
-try {
-    await clientPromise;
-    console.log('MongoDB 连接成功');
-  } catch (error) {
-    console.error('MongoDB 连接失败:', error);
-  }
-
-export default clientPromise;
