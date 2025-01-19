@@ -1,5 +1,4 @@
 import { connectToDatabase } from '@/lib/mongodb';
-import { NextResponse } from 'next/server';
 
 export async function GET() {
   let client;
@@ -12,15 +11,25 @@ export async function GET() {
       .sort({ createdAt: -1 })
       .toArray();
 
-    return NextResponse.json(notes);
+    return new Response(JSON.stringify(notes), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   } catch (error) {
     console.error('获取笔记失败:', error);
-    return NextResponse.json(
-      { 
+    return new Response(
+      JSON.stringify({ 
         error: '获取笔记失败', 
         details: error.message 
-      },
-      { status: 500 }
+      }), 
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
   }
 }
@@ -35,9 +44,14 @@ export async function POST(request) {
     const { content } = body;
     
     if (!content) {
-      return NextResponse.json(
-        { error: '内容不能为空' },
-        { status: 400 }
+      return new Response(
+        JSON.stringify({ error: '内容不能为空' }), 
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
     }
 
@@ -46,22 +60,32 @@ export async function POST(request) {
       createdAt: new Date()
     });
 
-    return NextResponse.json(
-      { 
+    return new Response(
+      JSON.stringify({ 
         id: result.insertedId.toString(), 
         content,
         createdAt: new Date()
-      },
-      { status: 201 }
+      }), 
+      {
+        status: 201,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
   } catch (error) {
     console.error('保存笔记失败:', error);
-    return NextResponse.json(
-      { 
+    return new Response(
+      JSON.stringify({ 
         error: '保存笔记失败', 
         details: error.message 
-      },
-      { status: 500 }
+      }), 
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
   }
 }
