@@ -4,21 +4,26 @@ if (!process.env.MONGODB_URI) {
   throw new Error('请添加 MongoDB URI 到环境变量');
 }
 
-const uri = process.env.MONGODB_URI;
-const options = {};
+let cachedClient = null;
+let cachedDb = null;
 
-let client;
-let clientPromise;
-
-if (process.env.NODE_ENV === 'development') {
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri, options);
-    global._mongoClientPromise = client.connect();
+export async function connectToDatabase() {
+  if (cachedClient && cachedDb) {
+    return { client: cachedClient, db: cachedDb };
   }
-  clientPromise = global._mongoClientPromise;
-} else {
-  client = new MongoClient(uri, options);
-  clientPromise = client.connect();
+
+  try {
+    const client = await MongoClient.connect(process.env.MONGODB_URI);
+    const db = client.db('your-database-name'); // 确保这里使用正确的数据库名
+
+    cachedClient = client;
+    cachedDb = db;
+
+    return { client, db };
+  } catch (error) {
+    console.error('MongoDB 连接错误:', error);
+    return { client: null, db: null };
+  }
 }
 
 // 添加错误处理和日志

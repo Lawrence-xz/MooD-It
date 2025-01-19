@@ -17,13 +17,17 @@ export default function NoteInput({ onSave }) {
           body: JSON.stringify({ content: note }),
         });
         
-        if (response.ok) {
-          const data = await response.json();
-          onSave(note);
-          setNote('');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || '保存失败');
         }
+
+        const data = await response.json();
+        onSave(note);
+        setNote('');
       } catch (error) {
         console.error('保存失败:', error);
+        alert(error.message || '保存失败，请稍后重试');
       } finally {
         setIsLoading(false);
       }

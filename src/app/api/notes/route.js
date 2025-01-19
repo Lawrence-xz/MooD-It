@@ -1,18 +1,27 @@
+import { connectToDatabase } from '@/lib/mongodb';
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
 
 export async function GET() {
   try {
-    const client = await clientPromise;
-    const db = client.db("musicMemo");
-    const notes = await db.collection("notes")
+    const { db } = await connectToDatabase();
+    
+    if (!db) {
+      console.error('数据库连接失败');
+      return NextResponse.json(
+        { error: '数据库连接失败' },
+        { status: 500 }
+      );
+    }
+
+    const notes = await db.collection('notes')
       .find({})
       .sort({ createdAt: -1 })
       .toArray();
-    
+
     return NextResponse.json(notes);
+    
   } catch (error) {
-    console.error('Error fetching notes:', error);
+    console.error('获取笔记失败:', error);
     return NextResponse.json(
       { error: '获取笔记失败' },
       { status: 500 }
@@ -22,27 +31,37 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const data = await request.json(); // Ensure request body is parsed correctly
-    if (!data || typeof data !== 'object') {
-      throw new Error('Invalid request body');
+    const { db } = await connectToDatabase();
+    
+    if (!db) {
+      console.error('数据库连接失败');
+      return NextResponse.json(
+        { error: '数据库连接失败' },
+        { status: 500 }
+      );
     }
 
-    const client = await clientPromise;
-    const db = client.db("musicMemo");
+    const { content } = await request.json();
     
-    const newNote = {
-      content: data.content,
-      createdAt: new Date(),
-    };
-    
-    const result = await db.collection("notes").insertOne(newNote);
-    
-    return NextResponse.json({
-      success: true,
-      note: { ...newNote, _id: result.insertedId.toString() }
+    if (!content) {
+      return NextResponse.json(
+        { error: '内容不能为空' },
+        { status: 400 }
+      );
+    }
+
+    const result = await db.collection('notes').insertOne({
+      content,
+      createdAt: new Date()
     });
+
+    return NextResponse.json(
+      { id: result.insertedId, content },
+      { status: 201 }
+    );
+    
   } catch (error) {
-    console.error('Error saving note:', error);
+    console.error('保存笔记失败:', error);
     return NextResponse.json(
       { error: '保存笔记失败' },
       { status: 500 }
