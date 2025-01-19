@@ -31,18 +31,16 @@ export default function NoteInput({ onSave }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-8">
+    <div className="note-input">
       <textarea
-        className="w-full p-4 border rounded-lg shadow-sm text-gray-800 bg-white"
+        className="note-textarea"
         rows="6"
         placeholder="写下你的想法..."
         value={note}
         onChange={(e) => setNote(e.target.value)}
       />
       <button
-        className={`mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg ${
-          isLoading ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
+        className={`save-button ${isLoading ? 'loading' : ''}`}
         onClick={handleSave}
         disabled={isLoading}
       >
